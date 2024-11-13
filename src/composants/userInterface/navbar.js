@@ -1,7 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import mainLogo from'./../../assets/images/logoSavfile.png';
+import { CgProfile } from "react-icons/cg";
 function NavDashboard(){
+    const userdata = JSON.parse(localStorage.getItem('userdata'));
+    const Navigate = useNavigate
+    const logout =() =>{
+        localStorage.clear();
+        Navigate('/login')
+    }
+
     return(
         <div>
             <nav class="navbar navbar-expand-lg">
@@ -19,7 +27,8 @@ function NavDashboard(){
                         <ul class="navbar-nav align-items-center ms-lg-5">
                         
                             <li class="nav-item ms-lg-auto">
-                                <Link className="nav-link" to="/">LogOut</Link>
+                            <CgProfile />
+                            { userdata ? <Link onClick ={logout} className="nav-link" to="/login">LogOut</Link> : null}
                             </li>
 
                             

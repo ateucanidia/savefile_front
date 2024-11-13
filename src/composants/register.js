@@ -1,10 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react'; 
 import { Link } from "react-router-dom";
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 function Register() {
   const userRef = useRef();
   const errRef = useRef();
+  const navigate = useNavigate(); 
 
   const [user, setUser] = useState({
     username: '',
@@ -39,6 +42,7 @@ function Register() {
       const userResponse = await axios.post('http://127.0.0.1:8000/api/sign-up', user);
       console.log('User added:', userResponse.data);
       alert('user added!')
+      navigate('/');
     } catch (error) {
       if (error.response) {
         console.error('Error response:', error.response.data); // Log response from server
@@ -53,14 +57,11 @@ function Register() {
     }
   };
 
-  // Handle form submission
+  // Handle form submission()
   const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload on form submit
-
-    if (user.password !== user.confirmPassword) {
-      setErrMsg('Passwords do not match');
-      return;
-    }
+   
+    e.preventDefault();
+    
     addUser(); // Call the function to add the user
   };
 
@@ -169,7 +170,7 @@ function Register() {
             <span className="focus-border"></span>
           </div>
 
-          <div className="inputSection">
+          {/* <div className="inputSection">
             <input
               ref={userRef}
               type="password"
@@ -182,7 +183,7 @@ function Register() {
               required
             />
             <span className="focus-border"></span>
-          </div>
+          </div> */}
 
           <div className="formFooter">
           <input type="submit" className="fadeIn fourth" value="Register"/>
@@ -190,9 +191,9 @@ function Register() {
         </form>
 
         {/* Remind Password */}
-        <div id="formFooter">
+        {/* <div id="formFooter">
           <a className="underlineHover" href="#">Forgot Password?</a>
-        </div>
+        </div> */}
 
       </div>
     </div>

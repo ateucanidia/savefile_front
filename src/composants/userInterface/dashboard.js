@@ -4,6 +4,7 @@ import { FaFolder } from "react-icons/fa";
 import { FaFile } from "react-icons/fa";
 import { FaHome } from "react-icons/fa";
 import { AiOutlineFileJpg, AiOutlineFilePdf } from "react-icons/ai";
+import { IoArrowBack } from "react-icons/io5";
 import { CgFileAdd } from "react-icons/cg";
 import { RiFolderAddFill } from "react-icons/ri";
 import FileUploadModal from "./fileUpload.js";
@@ -21,12 +22,31 @@ function DashboardInterface(){
     )
 }
 
- function Dashboard(){
+function ContextMenu({ x, y, onClose }) {
+    return (
+        <div>
+            <div className="context-menu"  onClick={(e) => e.stopPropagation()}>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    <li onClick={() => alert('Open folder')}>Open</li>
+                    <li onClick={() => alert('Rename folder')}>Rename</li>
+                    <li onClick={() => alert('Delete folder')}>Delete</li>
+                </ul>
+            </div>
+            <div className="overlay" onClick={onClose} />
+        </div>
+    );
+}
+
+function Dashboard(){
     const [folders, setFolders] = useState([]);
+    const [currentFolderId, setCurrentFolderId] = useState(1);
     const [files, setFiles] = useState([]);
     const [subfolders, setSubFolders] = useState([]);
+    const [clickedFolderId, setClickedFolderId] = useState(null);
     const [openFileModal, setOpenFileModal] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [contextMenu, setContextMenu] = useState(null);
+    const [rightClickedFolderId, setRightClickedFolderId] = useState(null);
     const handleOpenFileModal = () => setOpenFileModal(true);
     const handleCloseFileModal = () => setOpenFileModal(false);
 
@@ -34,31 +54,76 @@ function DashboardInterface(){
     const handleOpenFolderModal = () => setOpenFolderModal(true);
     const handleCloseFolderModal = () => setOpenFolderModal(false);
 
-    useEffect(() => {
-        const getFolderFile = async() =>{
+
+        const fetchSubfoldersAndFiles = async(folderId ) =>{
             try {
-                // const folderResponse = await axios.get("http://127.0.0.1:8000/api/folders");
-                // setFolders(folderResponse.data);
-                // console.log(folderResponse.data, 'Folder')
+                console.log("Fetching files for folder:", folderId);
                 let userdata = JSON.parse(localStorage.getItem('userdata'));
-            let rootfolderId = userdata.rootFolder.split('root-folder-user-')[1];
+                // Extract rootfolderId from userdata
+                console.log(userdata.rootFolder)
                 
-                const subFolderResponse = await axios.get("http://127.0.0.1:8000/api/folders/"+rootfolderId+"/subfolders");
+                
+                const subFolderResponse = await axios.get("http://127.0.0.1:8000/api/folders/"+folderId+"/subfolders");
                 setSubFolders(subFolderResponse.data);
                 console.log(subFolderResponse.data, 'sub Folder')
 
-                const fileResponse = await axios.get("http://127.0.0.1:8000/api/folders/"+rootfolderId+"/files");
+                const fileResponse = await axios.get("http://127.0.0.1:8000/api/folders/"+folderId+"/files");
                 setFiles(fileResponse.data);
-                console.log(fileResponse.data, 'File');
-                setLoading(false); //indique que le chargement est terminer
+                console.log("Loaded files in root folder:", fileResponse.data);
+                
             } catch (error) {
                 console.log("Erreur de chargement des données:", error);
-                setLoading(false); //indique que le chargement est terminer
+                setLoading(false); 
             }
         }
-        getFolderFile();
-    },[]);
-  
+        const handleFileUploadSuccess = () => {
+            refreshSubfolders(); // Reloads the files after successful upload
+            setTimeout(() => refreshSubfolders(), 500);
+            console.log("Files reloaded after upload.");
+        };
+        const refreshSubfolders = () => {
+            // Use the current folder ID or root folder ID to refresh the list
+            const folderId = clickedFolderId || currentFolderId;
+            console.log("Refreshing files for folder:", folderId);
+            fetchSubfoldersAndFiles(folderId);
+        };
+        
+        
+        useEffect(() => {
+            const getInitialFoldersAndFiles = async () => {
+                
+                try {
+                    let userdata = JSON.parse(localStorage.getItem('userdata'));
+                    let rootfolderId = userdata.rootFolder.split('root-folder-user-')[1];
+                    console.log("Root Folder ID:", rootfolderId);
+                    
+                    await fetchSubfoldersAndFiles(rootfolderId);
+                    setClickedFolderId(null);
+                    setCurrentFolderId(rootfolderId); // Set the current folder as the root folder
+                    setLoading(false);
+                } catch (error) {
+                    console.log("Erreur de chargement des données:", error);
+                    setLoading(false);
+                }
+            };
+            getInitialFoldersAndFiles();
+            console.log("Files state updated:", files);
+        }, []);
+
+
+    const handleFolderDoubleClick = (folderId) => {
+        setClickedFolderId(folderId);
+        fetchSubfoldersAndFiles(folderId); 
+            
+    };
+
+    const goBackToDashboard = () => {
+        let userdata = JSON.parse(localStorage.getItem('userdata'));
+        let rootFolderId = userdata.rootFolder.split('root-folder-user-')[1];
+        setClickedFolderId(null);
+        fetchSubfoldersAndFiles(rootFolderId);
+    };
+
     const renderFileIcon = (filename) => {
         const fileExtension = filename.split('.').pop().toLowerCase();
         switch (fileExtension) {
@@ -76,8 +141,18 @@ function DashboardInterface(){
         return <div>Loading...</div>; // Replace with your loading component or spinner
     }
 
+    const handleRightClick = (e, folderId) => {
+        e.preventDefault();
+        setContextMenu({
+            x: e.pageX,
+            y: e.pageY,
+        });
+        setRightClickedFolderId(folderId);
+    };
+    const closeContextMenu = () => setContextMenu(null);
+    
 
-     return(
+        return(
         <div>
             <div className="sidebar">
                 <br></br>
@@ -88,47 +163,67 @@ function DashboardInterface(){
                 </svg>
                 </div>
                 <ul>
-                    <li><a href="/dashnoard"><i className="fa fa-dashboard"></i> Dashboard</a></li>
+                    <li><a href="/dashboard"><i className="fa fa-dashboard"></i> Dashboard</a></li>
                     <li><a href="/"><FaHome/> Home</a></li>
-                    <li><a href="/folder"><FaFolder/> Folders</a></li>
-                    <li><a href="/"><FaFile/> Recent Files</a></li>
-                    <li><a href="/"><i className="fa fa-cog"></i> Shared Files</a></li>
-                    <li><a href="/"><i className="fa fa-cog"></i> Deleted Files</a></li>
+                    <li><a href="/folder"><FaFolder/> LogOut</a></li>
+                    
                 </ul>
             </div>
 
             <div className="main-content">
                 <div className = "header-content header-dashdoard">
+                <button  onClick={goBackToDashboard} type="button" className="action-faff"><IoArrowBack   size={30}/></button>
                     <input type="search" id="search-bar" placeholder="search files"/>
                     <div className="header-button">
                         <button  onClick={handleOpenFolderModal} type="button" className="action-faff"><RiFolderAddFill size={30}/></button>
                         <button  onClick={handleOpenFileModal} type="button" className="action-faff"><CgFileAdd size={30}/></button>
                     </div>
                 </div>
-                <div className="content content-dashboard content-grid">
-                   {/* Display Subfolders */}
-                    {subfolders.map(subfolder => (
-                        <div className="folder-item" key={subfolder.id}>
-                            <FaFolder className="folder-icon" />
-                            <p>{subfolder.foldername}</p>
+                <div className=" content-dashboard content-grid">
+                {clickedFolderId ? (
+                        // Folder-specific content
+                        <div className="main-content ">
+                            <h2>FolderID: {clickedFolderId}</h2>
+                            
                         </div>
-                    ))}
+                    ) : (
+                        
+                        <>
+                        {/* Display Subfolders */}
+                            {subfolders.map(subfolder => (
+                                <div className="folder-item" onContextMenu={handleRightClick} key={subfolder.id} onDoubleClick={() => handleFolderDoubleClick(subfolder.id)}>
+                                    <FaFolder className="folder-icon" />
+                                    <p>{subfolder.foldername}</p>
+                                    {contextMenu && rightClickedFolderId === subfolder.id && (
+                                    <ContextMenu
+                                        x={contextMenu.x}
+                                        y={contextMenu.y}
+                                        onClose={closeContextMenu}
+                                        />
+                                    )}
+                                    {contextMenu && <div className="overlay" onClick={closeContextMenu} />}
+                                </div>
+                            ))}
 
-                    {/* Display Files */}
-                    {files
-                        .map(file => (
-                            <div className="file-item" key={file.id}>
-                                <FaFile className="folder-icon"/>
-                                <p>{file.fileName}</p>
-                            </div>
-                        ))}
+                            {/* Display Files */}
+                            {files
+                                .map(file => (
+                                    <div className="file-item" key={file.id}>
+                                        <FaFile className="folder-icon"/>
+                                        <p>{file.fileName}</p>
+                                    </div>
+                                ))}
+                              
+                        </>
+                    )}
+                    
                 </div>
             </div>
-
-            <AddFolderModal open={openFolderModal} handleClose={handleCloseFolderModal} />
-            <FileUploadModal open={openFileModal} handleClose={handleCloseFileModal} />
+                    
+            <AddFolderModal open={openFolderModal} handleClose={handleCloseFolderModal} onAddSuccess={refreshSubfolders}/>
+            <FileUploadModal open={openFileModal} handleClose={handleCloseFileModal} onSuccess={handleFileUploadSuccess} />
         </div>
-     )
- }
+        )
+}
 
  export default DashboardInterface;

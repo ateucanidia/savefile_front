@@ -1,6 +1,8 @@
 import React from 'react';
 import Navigation from './navigation.js';
 import Footer from './footer.js';
+import heroIcon from'./../assets/images/hero_image.jpg';
+
 
 function Home(){
     return (
@@ -9,21 +11,25 @@ function Home(){
            
             <main>
 
-<section className="hero-section d-flex justify-content-center align-items-center">
-    <div className="section-overlay"></div>
+<section className="hero-section d-flex justify-content-center align-items-cente hero-section-nw">
+    <div className="section-overlay section-overlay-nw"></div>
 
     <div className="container">
-        <div className="row">
+        <div className="heroRow">
+            <div className='hero-contain'>
+                <img src={heroIcon} class="hero-image"/>
+            </div>
 
-            <div className="col-lg-6 col-12 mb-5 mb-lg-0">
+            <div className="col-lg-6 col-12 b-5 mb-lg-0">
                 
-                <h6 className="text-white">Are you looking for your dream job?</h6>
+                <h6 className="text-white">Are you looking for a secured file box?</h6>
 
-                <h1 className="hero-title text-white mt-4 mb-4">Online Platform. <br/> Best Job portal</h1>
+                <h1 className="hero-title text-white mt-4 mb-4">Online Solution. <br/> For Files Upload</h1>
 
                 <a href="#categories-section" className="custom-btn custom-border-btn btn">Browse Categories</a>
                 
             </div>
+           
 
         </div>
     </div>

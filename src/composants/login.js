@@ -37,7 +37,7 @@ function Login(){
       // console.log(userResponse.data);
       localStorage.setItem('accessToken', userResponse.data.accessToken);
       const userDataResponse = await axios.get('http://127.0.0.1:8000/api/users/'+ userResponse.data.id);
-      localStorage.setItem('userdata', JSON.stringify(userDataResponse.data));
+      localStorage.setItem('userdata', JSON.stringify({isLoggedIn: true, ...userDataResponse.data}));
 
       console.log(localStorage.getItem('accessToken'),localStorage.getItem('userdata'));
       alert('user has being connected')
@@ -81,9 +81,9 @@ function Login(){
           </form>
 
           {/* <!-- Remind Passowrd --> */}
-          <div id="formFooter">
+          {/* <div id="formFooter">
             <a class="underlineHover" href="/login">Forgot Password?</a>
-          </div>
+          </div> */}
 
           </div>
         </div>

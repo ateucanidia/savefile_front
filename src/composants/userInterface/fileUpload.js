@@ -5,20 +5,21 @@ import Box from '@mui/material/Box';
 
 
 
-function FileUploadModal({  open, handleClose  }){
-   const [selectedFile, setselectedFile]= useState([]);
+function FileUploadModal({  open, handleClose, onSuccess }){
+   const [selectedFile, setSelectedFile]= useState();
   
    const handleFileChange = (e) => {
-    setselectedFile(e.target.files[0]);
+    setSelectedFile(e.target.files[0]);
    };
    
    
 //    fetch file from API
 
-    const fetchFiles = async () => {
+    const uploadFile  = async () => {
         if (selectedFile) {
             const formData = new FormData();
             formData.append("file", selectedFile);
+            
             console.log(localStorage.getItem('accessToken'),JSON.parse(localStorage.getItem('userdata')));
             //return false;
             try{
@@ -28,7 +29,13 @@ function FileUploadModal({  open, handleClose  }){
                       'Authorization': 'Bearer '+localStorage.getItem('accessToken')
                     },
                   } )
+                 
+                  if (onSuccess) onSuccess();  
+                  setSelectedFile(null);
+                  handleClose();
                 console.log(fileResponse.data);
+                
+
             }
             catch(error){
                 console.log('error uploading the file', error);
@@ -41,11 +48,11 @@ function FileUploadModal({  open, handleClose  }){
    
     return(
         <div>
-            <Modal open={ open} onClose={handleClose} aria-labelledby="modal-title" aria-describedby="modal-description">
+            <Modal open={ open} onClose={handleClose} aria-labelledby="modal-title" aria-describedby="modal-description" >
             <Box className="modal-box">
                 <h2>Upload your file</h2>
                 <input type="file" placeholder="add a file" onChange={handleFileChange} accept="image/*,application/pdf"/>
-                <button onClick={fetchFiles}>Upload File</button>
+                <button onClick={uploadFile }>Upload File</button>
             </Box>
             </Modal>    
         </div>

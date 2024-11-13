@@ -8,7 +8,7 @@ import Contact from './composants/contact.js';
 import Login from './composants/login.js';
 import Register from './composants/register.js';
 import DashboardInterface from './composants/userInterface/dashboard.js'
-
+import ProtectedRoute from './composants/protectedRoute.js';
 
 function App() {
  
@@ -24,8 +24,14 @@ function App() {
             <Route path = "/contact" Component = {Contact}/>
             <Route path = "/login" Component = {Login}/>
             <Route path = "/register" Component = {Register}/>
-            <Route path = "/dashboard" Component = {DashboardInterface}/>
-           
+            <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardInterface />
+              </ProtectedRoute>
+            }
+          />
           </Routes >
         
       </div>

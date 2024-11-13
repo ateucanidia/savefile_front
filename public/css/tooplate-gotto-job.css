@@ -686,8 +686,7 @@ nav[aria-label="breadcrumb"] {
 }
 
 .mission-vision-values .container {
-  display: flex;
-  justify-content: space-between;
+ 
 }
 
 .mission, .vision, .values {
@@ -1312,7 +1311,7 @@ input[type=text], input[type=email], input[type=date], input[type=tel], input[ty
   border: none;
   color: #0d0d0d;
   padding: 15px 32px;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;

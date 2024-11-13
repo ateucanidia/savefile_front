@@ -3,7 +3,7 @@ import axios from "axios";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 
-function AddFolderModal({  open, handleClose }){
+function AddFolderModal({  open, handleClose, onAddSuccess }){
     const [addfolder, setAddFolder] = useState([]);
    
     const handleFolderChange = (e) =>{
@@ -12,13 +12,8 @@ function AddFolderModal({  open, handleClose }){
 
     const newFolder = async() => {
         if (addfolder) {
-            
-            // const formData = new FormData();
-            // formData.append("foldername", addfolder);
             let userdata = JSON.parse(localStorage.getItem('userdata'));
             let rootfolderId = userdata.rootFolder.split('root-folder-user-')[1];
-            //console.log(localStorage.getItem('accessToken'), rootfolderId, userdata);
-            // formData.append("parentId", rootfolderId);
             let formData = {
                 "foldername": addfolder,
                 "parentId": rootfolderId
@@ -26,21 +21,19 @@ function AddFolderModal({  open, handleClose }){
             //return false;
             try{
             
-                const folderRespons = await axios.post('http://127.0.0.1:8000/api/folders', formData/*, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Authorization': 'Bearer '+localStorage.getItem('accessToken')
-                    },
-                }*/)
+                const folderRespons = await axios.post('http://127.0.0.1:8000/api/folders', formData)
                 console.log('Folder added', folderRespons.data);
-                //console.log(localStorage.getItem('accessToken'),JSON.parse(localStorage.getItem('userdata')));
+                onAddSuccess();
             }
             catch(error) {
                 console.log('error adding the folder', error); 
+                alert('please enter the folder name!')
             }
         }else {
             console.log("folder not added.");
+            
         }
+        handleClose();
     }
     return(
         <div>
