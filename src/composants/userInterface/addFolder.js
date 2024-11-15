@@ -2,8 +2,11 @@ import React, {useState} from "react";
 import axios from "axios";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import {FolderContext} from './AppContext';
+import {useContext} from 'react';
 
 function AddFolderModal({  open, handleClose, onAddSuccess }){
+    const {folderId} = useContext(FolderContext);
     const [addfolder, setAddFolder] = useState([]);
    
     const handleFolderChange = (e) =>{
@@ -12,11 +15,9 @@ function AddFolderModal({  open, handleClose, onAddSuccess }){
 
     const newFolder = async() => {
         if (addfolder) {
-            let userdata = JSON.parse(localStorage.getItem('userdata'));
-            let rootfolderId = userdata.rootFolder.split('root-folder-user-')[1];
             let formData = {
                 "foldername": addfolder,
-                "parentId": rootfolderId
+                "parentId": folderId
               };
             //return false;
             try{

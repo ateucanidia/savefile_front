@@ -9,9 +9,11 @@ import { CgFileAdd } from "react-icons/cg";
 import { RiFolderAddFill } from "react-icons/ri";
 import FileUploadModal from "./fileUpload.js";
 import AddFolderModal from "./addFolder.js";
+import { RiLogoutCircleFill } from "react-icons/ri";
+import { Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 
-
+import {FolderContext} from './AppContext';
 
 function DashboardInterface(){
     return(
@@ -49,20 +51,23 @@ function Dashboard(){
     const [rightClickedFolderId, setRightClickedFolderId] = useState(null);
     const handleOpenFileModal = () => setOpenFileModal(true);
     const handleCloseFileModal = () => setOpenFileModal(false);
-
+    const [folderId, setFolder] = useState('');
     const [openFolderModal, setOpenFolderModal] = useState(false);
     const handleOpenFolderModal = () => setOpenFolderModal(true);
     const handleCloseFolderModal = () => setOpenFolderModal(false);
 
+    const userdata = JSON.parse(localStorage.getItem('userdata'));
+    const Navigate = useNavigate
+    const logout =() =>{
+        localStorage.clear();
+        Navigate('/login')
+    }
 
         const fetchSubfoldersAndFiles = async(folderId ) =>{
             try {
                 console.log("Fetching files for folder:", folderId);
                 let userdata = JSON.parse(localStorage.getItem('userdata'));
                 // Extract rootfolderId from userdata
-                console.log(userdata.rootFolder)
-                
-                
                 const subFolderResponse = await axios.get("http://127.0.0.1:8000/api/folders/"+folderId+"/subfolders");
                 setSubFolders(subFolderResponse.data);
                 console.log(subFolderResponse.data, 'sub Folder')
@@ -83,7 +88,7 @@ function Dashboard(){
         };
         const refreshSubfolders = () => {
             // Use the current folder ID or root folder ID to refresh the list
-            const folderId = clickedFolderId || currentFolderId;
+            // const folderId = clickedFolderId || currentFolderId;
             console.log("Refreshing files for folder:", folderId);
             fetchSubfoldersAndFiles(folderId);
         };
@@ -96,10 +101,10 @@ function Dashboard(){
                     let userdata = JSON.parse(localStorage.getItem('userdata'));
                     let rootfolderId = userdata.rootFolder.split('root-folder-user-')[1];
                     console.log("Root Folder ID:", rootfolderId);
-                    
                     await fetchSubfoldersAndFiles(rootfolderId);
                     setClickedFolderId(null);
-                    setCurrentFolderId(rootfolderId); // Set the current folder as the root folder
+                    setCurrentFolderId(rootfolderId);
+                    setFolder(rootfolderId); // Set the current folder as the root folder
                     setLoading(false);
                 } catch (error) {
                     console.log("Erreur de chargement des données:", error);
@@ -114,7 +119,7 @@ function Dashboard(){
     const handleFolderDoubleClick = (folderId) => {
         setClickedFolderId(folderId);
         fetchSubfoldersAndFiles(folderId); 
-            
+        setFolder(folderId);
     };
 
     const goBackToDashboard = () => {
@@ -153,6 +158,7 @@ function Dashboard(){
     
 
         return(
+            <FolderContext.Provider value={{folderId, setFolder}}>
         <div>
             <div className="sidebar">
                 <br></br>
@@ -165,7 +171,8 @@ function Dashboard(){
                 <ul>
                     <li><a href="/dashboard"><i className="fa fa-dashboard"></i> Dashboard</a></li>
                     <li><a href="/"><FaHome/> Home</a></li>
-                    <li><a href="/folder"><FaFolder/> LogOut</a></li>
+                    <li>{ userdata ?<a href="/login" onClick ={logout}><RiLogoutCircleFill/> LogOut</a>: null}</li>
+                    {/* <li><RiLogoutCircleFill background colour/>{ userdata ? <Link onClick ={logout} className="nav-link" to="/login">LogOut</Link> : null}</li> */}
                     
                 </ul>
             </div>
@@ -180,15 +187,13 @@ function Dashboard(){
                     </div>
                 </div>
                 <div className=" content-dashboard content-grid">
-                {clickedFolderId ? (
-                        // Folder-specific content
-                        <div className="main-content ">
+                {/* {clickedFolderId ? (
                             <h2>FolderID: {clickedFolderId}</h2>
-                            
-                        </div>
                     ) : (
                         
-                        <>
+                        <></>
+                    )} */}
+                    <>
                         {/* Display Subfolders */}
                             {subfolders.map(subfolder => (
                                 <div className="folder-item" onContextMenu={handleRightClick} key={subfolder.id} onDoubleClick={() => handleFolderDoubleClick(subfolder.id)}>
@@ -215,14 +220,17 @@ function Dashboard(){
                                 ))}
                               
                         </>
-                    )}
                     
                 </div>
             </div>
                     
-            <AddFolderModal open={openFolderModal} handleClose={handleCloseFolderModal} onAddSuccess={refreshSubfolders}/>
-            <FileUploadModal open={openFileModal} handleClose={handleCloseFileModal} onSuccess={handleFileUploadSuccess} />
+            
+            
+                <AddFolderModal open={openFolderModal} handleClose={handleCloseFolderModal} onAddSuccess={refreshSubfolders}/>
+                <FileUploadModal open={openFileModal} handleClose={handleCloseFileModal} onSuccess={handleFileUploadSuccess} />
+            
         </div>
+        </FolderContext.Provider>
         )
 }
 

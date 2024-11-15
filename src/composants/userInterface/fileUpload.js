@@ -3,11 +3,12 @@ import axios from "axios";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 
+import {FolderContext} from './AppContext';
+import {useContext} from 'react';
 
-
-function FileUploadModal({  open, handleClose, onSuccess }){
+function FileUploadModal({  open, handleClose, onSuccess, idFolder }){
+    const {folderId} = useContext(FolderContext);
    const [selectedFile, setSelectedFile]= useState();
-  
    const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
    };
@@ -19,26 +20,30 @@ function FileUploadModal({  open, handleClose, onSuccess }){
         if (selectedFile) {
             const formData = new FormData();
             formData.append("file", selectedFile);
+            formData.append("idFolder", folderId);
             
             console.log(localStorage.getItem('accessToken'),JSON.parse(localStorage.getItem('userdata')));
             //return false;
             try{
-                const fileResponse= await axios.post('http://127.0.0.1:8000/api/file', formData, {
+                const fileResponse= await axios.post('http://localhost:8000/api/file', formData, {
                     headers: {
                       'Content-Type': 'multipart/form-data',
-                      'Authorization': 'Bearer '+localStorage.getItem('accessToken')
+                      'Authorization': 'Bearer ' +localStorage.getItem('accessToken')
                     },
-                  } )
+                    maxBodyLength: Infinity
+                  } );
                  
-                  if (onSuccess) onSuccess();  
-                  setSelectedFile(null);
-                  handleClose();
+                //   if (onSuccess) onSuccess();  
+                //     setSelectedFile(null);
                 console.log(fileResponse.data);
                 
 
             }
             catch(error){
                 console.log('error uploading the file', error);
+                console.log('Error response:', error.response);
+                console.log('Error message:', error.message);
+                console.log('Error details:', error.toJSON());
             }
         
         }else {
